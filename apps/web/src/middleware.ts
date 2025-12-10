@@ -2,21 +2,21 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Multi-tenant middleware for routing requests based on hostname
+ * Routing Middleware for Peeap Shop
  *
- * Routes:
- * - shop.peeap.com -> /marketplace
- * - dashboard.shop.peeap.com -> /dashboard
- * - {slug}.shop.peeap.com -> /store/{slug}
- * - custom domain -> lookup store and route to /store/{slug}
+ * URL Structure (Path-based):
+ * - shop.peeap.com/                    → Marketplace homepage
+ * - shop.peeap.com/products            → All products
+ * - shop.peeap.com/vendors             → All vendors
+ * - shop.peeap.com/store/{slug}        → Individual vendor store
+ * - shop.peeap.com/store/{slug}/products → Vendor's products
+ * - shop.peeap.com/dashboard           → Vendor dashboard (authenticated)
+ * - shop.peeap.com/cart                → Shopping cart
+ * - shop.peeap.com/checkout            → Checkout
  */
-
-const MAIN_DOMAIN = process.env.NEXT_PUBLIC_MAIN_DOMAIN || 'shop.peeap.com';
-const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'shop.peeap.com';
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
-  const hostname = request.headers.get('host') || '';
   const pathname = url.pathname;
 
   // Skip middleware for API routes, static files, and Next.js internals
@@ -29,40 +29,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Local development handling
-  const isLocalhost = hostname.includes('localhost') || hostname.includes('127.0.0.1');
-
-  // Extract subdomain
-  let subdomain: string | null = null;
-
-  if (isLocalhost) {
-    // For local dev: check for subdomain in query param or use path-based routing
-    subdomain = url.searchParams.get('subdomain');
-  } else {
-    // Production: extract subdomain from hostname
-    const hostParts = hostname.replace(`.${ROOT_DOMAIN}`, '').split('.');
-    if (hostname !== ROOT_DOMAIN && hostname !== `www.${ROOT_DOMAIN}`) {
-      subdomain = hostParts[0];
-    }
+  // Dashboard routes - require authentication (handled in dashboard layout)
+  if (pathname.startsWith('/dashboard')) {
+    return NextResponse.next();
   }
 
-  // Route based on subdomain
-  if (subdomain === 'dashboard') {
-    // Vendor dashboard: dashboard.shop.peeap.com
-    url.pathname = `/dashboard${pathname}`;
-    return NextResponse.rewrite(url);
+  // Store routes - vendor storefronts
+  if (pathname.startsWith('/store/')) {
+    return NextResponse.next();
   }
 
-  if (subdomain && subdomain !== 'www') {
-    // Vendor store: {slug}.shop.peeap.com
-    url.pathname = `/store/${subdomain}${pathname}`;
-    return NextResponse.rewrite(url);
+  // Cart and checkout
+  if (pathname.startsWith('/cart') || pathname.startsWith('/checkout')) {
+    return NextResponse.next();
   }
 
-  // Main marketplace: shop.peeap.com
-  if (!pathname.startsWith('/marketplace') && !pathname.startsWith('/store') && !pathname.startsWith('/dashboard')) {
-    url.pathname = `/marketplace${pathname}`;
-    return NextResponse.rewrite(url);
+  // All other routes go to marketplace
+  // Rewrite root and marketplace routes
+  if (pathname === '/' || pathname.startsWith('/products') || pathname.startsWith('/vendors') || pathname.startsWith('/categories')) {
+    // These are marketplace routes, let them through
+    return NextResponse.next();
   }
 
   return NextResponse.next();
@@ -76,7 +62,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - public folder files
      */
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|public).*)',
   ],

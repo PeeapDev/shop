@@ -10,20 +10,17 @@ interface StorePageProps {
 // This would fetch from database in production
 async function getStore(slug: string) {
   // Placeholder - would fetch from Supabase
-  const mockStores: Record<string, any> = {
-    'demo-store': {
-      id: '1',
-      name: 'Demo Store',
-      slug: 'demo-store',
-      description: 'Welcome to our demo store! Browse our amazing products.',
-      logo_url: null,
-      theme: {
-        primaryColor: '#3B82F6',
-      },
+  // For now, accept any slug and show demo content
+  return {
+    id: '1',
+    name: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+    slug: slug,
+    description: 'Welcome to our store! Browse our amazing products.',
+    logo_url: null,
+    theme: {
+      primaryColor: '#3B82F6',
     },
   };
-
-  return mockStores[slug] || null;
 }
 
 export default async function StorePage({ params }: StorePageProps) {
@@ -37,7 +34,7 @@ export default async function StorePage({ params }: StorePageProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* Store Header */}
-      <header className="bg-white border-b">
+      <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
@@ -69,8 +66,11 @@ export default async function StorePage({ params }: StorePageProps) {
               </Link>
             </nav>
             <div className="flex items-center space-x-4">
-              <Link href={`/store/${slug}/cart`} className="text-gray-600">
+              <Link href="/cart" className="text-gray-600 hover:text-gray-900">
                 Cart (0)
+              </Link>
+              <Link href="/" className="text-sm text-blue-600 hover:underline">
+                ← Back to Marketplace
               </Link>
             </div>
           </div>
@@ -80,7 +80,7 @@ export default async function StorePage({ params }: StorePageProps) {
       {/* Hero Banner */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">{store.name}</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">{store.name}</h2>
           <p className="text-lg text-blue-100 mb-8">{store.description}</p>
           <Link
             href={`/store/${slug}/products`}
@@ -105,7 +105,7 @@ export default async function StorePage({ params }: StorePageProps) {
                 <div className="p-4">
                   <h4 className="font-medium truncate">Product Name {i}</h4>
                   <div className="mt-2 flex justify-between items-center">
-                    <span className="text-lg font-bold text-blue-600">$29.99</span>
+                    <span className="text-lg font-bold text-blue-600">${(24.99 + i * 5).toFixed(2)}</span>
                     <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
                       Add
                     </button>
@@ -120,7 +120,12 @@ export default async function StorePage({ params }: StorePageProps) {
       {/* All Products */}
       <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-2xl font-bold mb-6">All Products</h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-2xl font-bold">All Products</h3>
+            <Link href={`/store/${slug}/products`} className="text-blue-600 hover:underline">
+              View all →
+            </Link>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
@@ -131,7 +136,7 @@ export default async function StorePage({ params }: StorePageProps) {
                 <div className="p-4">
                   <h4 className="font-medium truncate">Product {i}</h4>
                   <div className="mt-2 flex justify-between items-center">
-                    <span className="text-lg font-bold text-blue-600">$19.99</span>
+                    <span className="text-lg font-bold text-blue-600">${(19.99 + i * 3).toFixed(2)}</span>
                     <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
                       Add
                     </button>
@@ -152,9 +157,9 @@ export default async function StorePage({ params }: StorePageProps) {
               <p className="text-sm text-gray-400">Powered by Peeap Shop</p>
             </div>
             <div className="flex space-x-6 text-sm text-gray-400">
-              <Link href={`/store/${slug}/terms`}>Terms</Link>
-              <Link href={`/store/${slug}/privacy`}>Privacy</Link>
-              <Link href={`/store/${slug}/contact`}>Contact</Link>
+              <Link href={`/store/${slug}/terms`} className="hover:text-white">Terms</Link>
+              <Link href={`/store/${slug}/privacy`} className="hover:text-white">Privacy</Link>
+              <Link href={`/store/${slug}/contact`} className="hover:text-white">Contact</Link>
             </div>
           </div>
         </div>
